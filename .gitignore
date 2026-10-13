@@ -427,3 +427,23 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# ─── Java / Maven (backend) ───
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+
+# ─── Node / React (frontend) ───
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+frontend/.vite/
+frontend/*.local
+
+# ─── IDE ───
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
