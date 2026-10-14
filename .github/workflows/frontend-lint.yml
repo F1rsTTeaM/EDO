@@ -12,6 +12,9 @@ jobs:
       run:
         working-directory: frontend
     steps:
+      - name: Record start time
+        run: echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
@@ -48,9 +51,11 @@ jobs:
             WARNINGS=$(jq '[.[].warningCount] | add' eslint-report.json)
             echo "- ESLint: $ERRORS ошибок, $WARNINGS предупреждений" >> $GITHUB_STEP_SUMMARY
           fi
+      
       - name: Write CI time to summary
         if: always()
         run: |
-          DURATION=$SECONDS
+          END_TIME=$(date +%s)
+          DURATION=$((END_TIME - START_TIME))
           echo "## Время CI" >> $GITHUB_STEP_SUMMARY
           echo "- Общее время job: ${DURATION}с" >> $GITHUB_STEP_SUMMARY
