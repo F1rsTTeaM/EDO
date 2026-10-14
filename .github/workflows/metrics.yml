@@ -1,0 +1,50 @@
+name: Weekly metrics
+
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Commits in last 7 days
+        run: |
+          SINCE=$(date -d '7 days ago' --iso-8601)
+          COUNT=$(git log --since="$SINCE" --oneline | wc -l)
+          echo "COMMITS=$COUNT" >> $GITHUB_ENV
+
+      - name: Merged PRs in last 7 days
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          SINCE=$(date -d '7 days ago' --iso-8601)
+          PRS=$(gh pr list --state merged --search "merged:>=$SINCE" --json number | jq length)
+          echo "PRS=$PRS" >> $GITHUB_ENV
+
+      - name: Average CI time
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          AVG=$(gh run list --limit 30 --json conclusion,createdAt,updatedAt \
+            | jq '[.[] | select(.conclusion=="success") | ((.updatedAt|fromdateiso8601) - (.createdAt|fromdateiso8601))] | add/length | floor')
+          echo "CI_AVG=$AVG" >> $GITHUB_ENV
+
+      - name: Publish metrics report
+        run: |
+          echo "## Метрики качества за неделю" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Метрика | Значение |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Коммитов за неделю | $COMMITS |" >> $GITHUB_STEP_SUMMARY
+          echo "| Смердженных PR за неделю | $PRS |" >> $GITHUB_STEP_SUMMARY
+          echo "| Среднее время CI, сек | $CI_AVG |" >> $GITHUB_STEP_SUMMARY

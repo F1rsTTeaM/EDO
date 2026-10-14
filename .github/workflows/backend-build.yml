@@ -19,6 +19,12 @@ jobs:
           java-version: '21'
           cache: maven
       - run: mvn -B test
+      - name: Write CI time to summary
+        if: always()
+        run: |
+          DURATION=$SECONDS
+          echo "## Время CI" >> $GITHUB_STEP_SUMMARY
+          echo "- Общее время job: ${DURATION}с" >> $GITHUB_STEP_SUMMARY
 
   build:
     needs: test
@@ -40,3 +46,9 @@ jobs:
           name: backend-jar-${{ github.sha }}
           path: backend/target/*.jar
           retention-days: 30
+      - name: Write CI time to summary
+        if: always()
+        run: |
+          DURATION=$SECONDS
+          echo "## Время CI" >> $GITHUB_STEP_SUMMARY
+          echo "- Общее время job: ${DURATION}с" >> $GITHUB_STEP_SUMMARY

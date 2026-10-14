@@ -12,3 +12,9 @@ jobs:
         with:
           fetch-depth: 0
       - uses: wagoid/commitlint-github-action@v6
+      - name: Write CI time to summary
+        if: always()
+        run: |
+          DURATION=$SECONDS
+          echo "## Время CI" >> $GITHUB_STEP_SUMMARY
+          echo "- Общее время job: ${DURATION}с" >> $GITHUB_STEP_SUMMARY

@@ -30,10 +30,20 @@ jobs:
           name: jacoco-report
           path: backend/target/site/jacoco
 
-      - name: Add coverage summary to job summary
+      - name: Write coverage to summary
         if: always()
+        working-directory: backend
         run: |
           echo "## Покрытие кода" >> $GITHUB_STEP_SUMMARY
-          if [ -f target/site/jacoco/index.html ]; then
-            echo "HTML-отчёт во вложениях (artifact jacoco-report)." >> $GITHUB_STEP_SUMMARY
+          if [ -f target/site/jacoco/jacoco.csv ]; then
+            awk -F, 'NR>1 {mi+=$4; ci+=$5} END {printf "Line coverage: %.1f%%\n", ci*100/(mi+ci)}' \
+              target/site/jacoco/jacoco.csv >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Отчёт JaCoCo не найден" >> $GITHUB_STEP_SUMMARY
           fi
+      - name: Write CI time to summary
+        if: always()
+        run: |
+          DURATION=$SECONDS
+          echo "## Время CI" >> $GITHUB_STEP_SUMMARY
+          echo "- Общее время job: ${DURATION}с" >> $GITHUB_STEP_SUMMARY
