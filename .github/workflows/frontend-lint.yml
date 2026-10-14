@@ -28,3 +28,23 @@ jobs:
 
       - name: Check Prettier formatting
         run: npm run format:check
+
+      - name: Run ESLint with JSON output
+        run: npx eslint . -f json -o eslint-report.json || true
+
+      - name: Upload ESLint report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eslint-report
+          path: frontend/eslint-report.json
+
+      - name: Write ESLint metrics to summary
+        if: always()
+        run: |
+          echo "## Метрики качества фронтенда" >> $GITHUB_STEP_SUMMARY
+          if [ -f eslint-report.json ]; then
+            ERRORS=$(jq '[.[].errorCount] | add' eslint-report.json)
+            WARNINGS=$(jq '[.[].warningCount] | add' eslint-report.json)
+            echo "- ESLint: $ERRORS ошибок, $WARNINGS предупреждений" >> $GITHUB_STEP_SUMMARY
+          fi

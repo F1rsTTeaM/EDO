@@ -22,3 +22,33 @@ jobs:
 
       - name: Run Checkstyle and SpotBugs
         run: mvn -B verify -DskipTests
+
+      - name: Upload Checkstyle report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: backend/target/checkstyle-result.xml
+
+      - name: Upload SpotBugs report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-report
+          path: backend/target/spotbugsXml.xml
+
+      - name: Write metrics to summary
+        if: always()
+        working-directory: backend
+        run: |
+          echo "## Метрики качества бэкенда" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f target/checkstyle-result.xml ]; then
+            CHECKSTYLE=$(grep -c '<error' target/checkstyle-result.xml || echo 0)
+            echo "- Checkstyle: $CHECKSTYLE замечаний" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ -f target/spotbugsXml.xml ]; then
+            SPOTBUGS=$(grep -c '<BugInstance' target/spotbugsXml.xml || echo 0)
+            echo "- SpotBugs: $SPOTBUGS замечаний" >> $GITHUB_STEP_SUMMARY
+          fi
