@@ -12,9 +12,6 @@ jobs:
       run:
         working-directory: backend
     steps:
-      - name: Record start time
-        run: echo "START_TIME=$(date +%s)" >> $GITHUB_ENV
-
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
@@ -44,11 +41,3 @@ jobs:
           else
             echo "Отчёт JaCoCo не найден" >> $GITHUB_STEP_SUMMARY
           fi
-      
-      - name: Write CI time to summary
-        if: always()
-        run: |
-          END_TIME=$(date +%s)
-          DURATION=$((END_TIME - START_TIME))
-          echo "## Время CI" >> $GITHUB_STEP_SUMMARY
-          echo "- Общее время job: ${DURATION}с" >> $GITHUB_STEP_SUMMARY
